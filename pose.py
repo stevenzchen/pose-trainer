@@ -1,4 +1,4 @@
-
+import numpy as np
 
 class PoseSequence:
     def __init__(self, sequence):
@@ -11,9 +11,9 @@ class PoseSequence:
                                  [Part.dist(pose.neck, pose.rhip) for pose in self.poses if pose.neck.exists and pose.rhip.exists])
         mean_torso = np.mean(torso_lengths)
 
-        for pose in poses:
+        for pose in self.poses:
             for attr, part in pose:
-                setattr(attr, part / mean_torso)
+                setattr(pose, attr, part / mean_torso)
 
 
 
@@ -26,11 +26,11 @@ class Pose:
         Arguments:
             parts - 18 * 3 ndarray of x, y, confidence values
         """
-        for name, vals in zip(PART_NAMES, parts):
+        for name, vals in zip(self.PART_NAMES, parts):
             setattr(self, name, Part(vals))
     
     def __iter__(self):
-        for attr, value in self.__dict__.iteritems():
+        for attr, value in self.__dict__.items():
             yield attr, value
 
 
@@ -39,7 +39,7 @@ class Part:
         self.x = vals[0]
         self.y = vals[1]
         self.c = vals[2]
-        self.exists = c != 0.0
+        self.exists = self.c != 0.0
 
     def __floordiv__(self, scalar):
         __truediv__(self, scalar)
@@ -48,5 +48,5 @@ class Part:
         return Part([self.x / scalar, self.y / scalar, self.c])
 
     @staticmethod
-    def dist(cls, part1, part2):
+    def dist(part1, part2):
         return np.sqrt(np.square(part1.x - part2.x) + np.square(part1.y - part2.y))
