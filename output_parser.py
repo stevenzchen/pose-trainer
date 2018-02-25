@@ -1,37 +1,45 @@
 import glob
 import json
 import numpy as np
+import os
 
 from pose import Pose, Part, PoseSequence
 from pprint import pprint
 
+
 def main():
-    videos = glob.glob("poses/*")
+    # TODO: convert this into a command line utility
+    video_paths = glob.glob(os.path.join('poses', '*'))
 
     # Get all the json sequences for each video
-    # pose_seq = [[json for video 1],[json for video 2],...]
-    pose_seq = []
-    for v in videos:
-        json_frames = sorted(glob.glob(v+"/*.json"))
-        pprint(json_frames)
-        pose_seq.append(json_frames)
-        break
-    #pprint(pose_seq)
+    all_ps = []
+    for video_path in video_paths:
+        all_ps.append(parse_sequence(video_path))
 
-    # For every video
-    for json_frames in pose_seq:
-        frame_count = len(json_frames)
-        data = np.zeros((frame_count, 18, 3))
-        for i, frame in enumerate(json_frames):
-            temp_data = json.load(open(frame))
-            pose_keypoints = np.array(temp_data["people"][0]["pose_keypoints"])
-            data[i] = np.array_split(pose_keypoints, 18)
-            #pprint(len(_))
-        #pose_obj = PoseSequence(len(json_frames), _)
-        #pprint(data.shape)
-        ps = PoseSequence(data)
-        for pose in ps.poses:
-            #pass
-            print(pose.rwrist.x, pose.rwrist.y)
 
-main()
+def parse_sequence(json_folder):
+    """Parse a sequence of OpenPose JSON frames into a PoseSequence object.
+
+    Args:
+        json_folder: path to the folder containing OpenPose JSON for one video.
+    
+    Returns:
+        PoseSequence object containing normalized poses in sequence.
+    """
+    json_files = glob.glob(os.path.join(json_folder, '*.json'))
+    json_files = sorted(json_files)
+
+    num_frames = len(json_files)
+    all_keypoints = np.zeros((num_frames, 18, 3))
+    for i in range(num_frames):
+        with open(json_files[i]) as f:
+            json_obj = json.load(f)
+            keypoints = np.array(json_obj['people'][0]['pose_keypoints'])
+            all_keypoints[i] = keypoints.reshape((18, 3))
+    
+    pose_seq = PoseSequence(all_keypoints)
+    return pose_seq
+
+
+if __name__ == '__main__':
+    main()
