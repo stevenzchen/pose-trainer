@@ -1,2 +1,4 @@
 /openpose
 /videos
+__pycache__/
+*.pyc
