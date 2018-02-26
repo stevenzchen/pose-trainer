@@ -1,3 +1,4 @@
+import argparse
 import glob
 import json
 import numpy as np
@@ -8,8 +9,12 @@ from pprint import pprint
 
 
 def main():
-    # TODO: convert this into a command line utility
-    video_paths = glob.glob(os.path.join('poses', '*'))
+    parser = argparse.ArgumentParser(description='Pose Trainer Parser')
+    parser.add_argument('--input_folder', type=str, default='poses', help='input folder for json files')
+
+    args = parser.parse_args()
+    
+    video_paths = glob.glob(os.path.join(args.input_folder, '*'))
 
     # Get all the json sequences for each video
     all_ps = []
