@@ -11,15 +11,16 @@ from pprint import pprint
 def main():
     parser = argparse.ArgumentParser(description='Pose Trainer Parser')
     parser.add_argument('--input_folder', type=str, default='poses', help='input folder for json files')
-
-    args = parser.parse_args()
     
+    args = parser.parse_args()
+
     video_paths = glob.glob(os.path.join(args.input_folder, '*'))
 
     # Get all the json sequences for each video
     all_ps = []
     for video_path in video_paths:
         all_ps.append(parse_sequence(video_path))
+    return all_ps
 
 
 def parse_sequence(json_folder):

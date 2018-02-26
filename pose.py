@@ -32,7 +32,22 @@ class Pose:
     def __iter__(self):
         for attr, value in self.__dict__.items():
             yield attr, value
-
+    
+    def __str__(self):
+        out = ""
+        for name in self.PART_NAMES:
+            _ = "{}: {},{}".format(name, getattr(self, name).x, getattr(self, name).x)
+            out = out + _ +"\n"
+        return out
+    
+    def print(self, parts):
+        out = ""
+        for name in parts:
+            if not name in self.PART_NAMES:
+                raise NameError(name)
+            _ = "{}: {},{}".format(name, getattr(self, name).x, getattr(self, name).x)
+            out = out + _ +"\n"
+        return out
 
 class Part:
     def __init__(self, vals):
