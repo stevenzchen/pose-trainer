@@ -26,7 +26,7 @@ def main():
     all_ps = []
     for video_path in video_paths:
         all_ps.append(parse_sequence(video_path))
-    return all_ps
+    return video_paths, all_ps
 
 
 def parse_sequence(json_folder):
