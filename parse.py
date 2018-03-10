@@ -9,34 +9,32 @@ from pprint import pprint
 
 
 def main():
-    '''
-    Parser temporarily disabled for notebook
-    '''
-    #parser = argparse.ArgumentParser(description='Pose Trainer Parser')
-    #parser.add_argument('--input_folder', type=str, default='poses', help='input folder for json files')
-    
-    #args = parser.parse_args()
 
-    #video_paths = glob.glob(os.path.join(args.input_folder, '*'))
-    video_paths = glob.glob(os.path.join('poses', '*'))
+    parser = argparse.ArgumentParser(description='Pose Trainer Parser')
+    parser.add_argument('--input_folder', type=str, default='poses', help='input folder for json files')
+    parser.add_argument('--output_folder', type=str, default='poses_compressed', help='output folder for npy files')
+    
+    args = parser.parse_args()
+
+    video_paths = glob.glob(os.path.join(args.input_folder, '*'))
+    #video_paths = glob.glob(os.path.join('poses', '*'))
     video_paths = sorted(video_paths)
     #print(video_paths)
 
     # Get all the json sequences for each video
     all_ps = []
     for video_path in video_paths:
-        all_ps.append(parse_sequence(video_path))
+        all_ps.append(parse_sequence(video_path, args.output_folder))
     return video_paths, all_ps
 
 
-def parse_sequence(json_folder):
+def parse_sequence(json_folder, output_folder):
     """Parse a sequence of OpenPose JSON frames into a PoseSequence object.
 
     Args:
         json_folder: path to the folder containing OpenPose JSON for one video.
-    
-    Returns:
-        PoseSequence object containing normalized poses in sequence.
+        output_folder: path to save the numpy array files of keypoints.
+
     """
     json_files = glob.glob(os.path.join(json_folder, '*.json'))
     json_files = sorted(json_files)
@@ -49,8 +47,8 @@ def parse_sequence(json_folder):
             keypoints = np.array(json_obj['people'][0]['pose_keypoints'])
             all_keypoints[i] = keypoints.reshape((18, 3))
     
-    pose_seq = PoseSequence(all_keypoints)
-    return pose_seq
+    output_dir = os.path.join(output_folder, os.path.basename(json_folder))
+    np.save(output_dir, all_keypoints)
 
 
 if __name__ == '__main__':
