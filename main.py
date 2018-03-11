@@ -22,7 +22,7 @@ def main():
 
     if args.mode == 'batch_json':
         # read filenames from the videos directory
-        videos = os.listdir('videos')
+        videos = os.listdir(args.input_folder)
 
         # openpose requires running from its directory
         os.chdir('openpose')
@@ -36,6 +36,10 @@ def main():
                             '--video', video_path, 
                             '--write_keypoint_json', output_path])
     
+    elif args.mode == 'compress_json':
+        # TODO compress the OpenPose JSON (one per frame) into compressed format (one per video)
+        pass
+
     elif args.mode == 'evaluate':
         if args.video:
             print("processing video file...")
