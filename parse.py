@@ -17,9 +17,7 @@ def main():
     args = parser.parse_args()
 
     video_paths = glob.glob(os.path.join(args.input_folder, '*'))
-    #video_paths = glob.glob(os.path.join('poses', '*'))
     video_paths = sorted(video_paths)
-    #print(video_paths)
 
     # Get all the json sequences for each video
     all_ps = []
@@ -29,7 +27,7 @@ def main():
 
 
 def parse_sequence(json_folder, output_folder):
-    """Parse a sequence of OpenPose JSON frames into a PoseSequence object.
+    """Parse a sequence of OpenPose JSON frames and saves a corresponding numpy file.
 
     Args:
         json_folder: path to the folder containing OpenPose JSON for one video.
@@ -49,6 +47,19 @@ def parse_sequence(json_folder, output_folder):
     
     output_dir = os.path.join(output_folder, os.path.basename(json_folder))
     np.save(output_dir, all_keypoints)
+
+
+def load_ps(filename):
+    """Load a PoseSequence object from a given numpy file.
+
+    Args:
+        filename: file name of the numpy file containing keypoints.
+    
+    Returns:
+        PoseSequence object with normalized joint keypoints.
+    """
+    all_keypoints = np.load(filename)
+    return PoseSequence(all_keypoints)
 
 
 if __name__ == '__main__':

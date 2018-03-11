@@ -5,7 +5,7 @@ import subprocess
 import numpy as np
 import matplotlib.pyplot as plt
 
-from parse import parse_sequence
+from parse import parse_sequence, load_ps
 from evaluate import evaluate_pose
 
 
@@ -35,10 +35,6 @@ def main():
             subprocess.call([openpose_path, 
                             '--video', video_path, 
                             '--write_keypoint_json', output_path])
-    
-    elif args.mode == 'compress_json':
-        # TODO compress the OpenPose JSON (one per frame) into compressed format (one per video)
-        pass
 
     elif args.mode == 'evaluate':
         if args.video:
@@ -51,7 +47,8 @@ def main():
             subprocess.call([openpose_path, 
                             '--video', os.path.join('..', args.video), 
                             '--write_keypoint_json', output_path])
-            pose_seq = parse_sequence(output_path)
+            parse_sequence(output_path, '..')
+            pose_seq = load_ps(os.path.join('..', os.path.splitext(video)[0] + '.npy'))
             (correct, feedback) = evaluate_pose(pose_seq, args.exercise)
             if correct:
                 print('Exercise performed correctly!')
