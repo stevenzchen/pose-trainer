@@ -76,3 +76,83 @@ def _bicep_curl(pose_seq):
         return (correct, 'Exercise performed correctly! Weight was lifted fully up, and upper arm did not move significantly.')
     else:
         return (correct, feedback)
+    
+def _shoulder_press(pose_seq):
+    poses = pose_seq.poses
+    
+    right_present = [1 for pose in poses 
+            if pose.rshoulder.exists and pose.relbow.exists and pose.rwrist.exists]
+    left_present = [1 for pose in poses
+            if pose.lshoulder.exists and pose.lelbow.exists and pose.lwrist.exists]
+    right_count = sum(right_present)
+    left_count = sum(left_present)
+    side = 'right' if right_count > left_count else 'left'
+
+    print('Exercise arm detected as: {}.'.format(side))
+    
+    if side == 'right':
+        joints = [(pose.rshoulder, pose.relbow, pose.rwrist, pose.rhip, pose.neck) for pose in poses]
+    else:
+        joints = [(pose.lshoulder, pose.lelbow, pose.lwrist, pose.lhip, pose.neck) for pose in poses]
+
+    # filter out data points where a part does not exist
+    joints = [joint for joint in joints if all(part.exists for part in joint)]
+    joints_ = np.array(joints)
+    
+    # Neck to hip
+    back_vec = np.array([(joint[4].x - joint[3].x, joint[4].y - joint[3].y) for joint in joints])
+    # Check range of motion of the back
+    # Straining back
+    back_vec_range = np.max(back_vec, axis=0) - np.min(back_vec, axis=0)
+    print("Range of motion for back: %s" % back_vec_range[0])
+    
+    # Rolling shoulder too much
+    elbow = joints_[:, 1]
+    elbow_x = np.array([joint.x for joint in elbow])
+
+    neck = joints_[:, 4]
+    neck_x = np.array([joint.x for joint in neck])
+    elbow_neck_dist = 0 
+    if side =='right':
+        elbow_neck_dist = np.min(elbow_x - neck_x)
+        print("Minimum distance between elbow and neck: ", np.min(elbow_x - neck_x))
+    else:
+        elbow_neck_dist = np.min(neck_x - elbow_x)
+        print("Minimum distance between elbow and neck: ", np.min(neck_x - elbow_x))
+    
+    # Shoulder to elbow    
+    upper_arm_vecs = np.array([(joint[0].x - joint[1].x, joint[0].y - joint[1].y) for joint in joints])
+    # Elbow to wrist
+    forearm_vecs = np.array([(joint[2].x - joint[1].x, joint[2].y - joint[1].y) for joint in joints])
+    
+    # normalize vectors
+    upper_arm_vecs = upper_arm_vecs / np.expand_dims(np.linalg.norm(upper_arm_vecs, axis=1), axis=1)
+    forearm_vecs = forearm_vecs / np.expand_dims(np.linalg.norm(forearm_vecs, axis=1), axis=1)
+    
+    # Check if raised all the way up
+    upper_arm_forearm_angles = np.degrees(np.arccos(np.clip(np.sum(np.multiply(upper_arm_vecs, forearm_vecs), axis=1), -1.0, 1.0)))
+    upper_forearm_angle = np.max(upper_arm_forearm_angles)
+    print("Max upper arm and forearm angle: ", np.max(upper_arm_forearm_angles))
+
+    correct = True
+    feedback = ''
+
+    if back_vec_range[0] > 0.16:
+        correct = False
+        feedback += 'Your back shows significant movement while pressing. Try keeping your back straight and still when you lift the weight.'
+    
+    if elbow_neck_dist < -0.12:
+        correct = False
+        feedback += 'You are rolling your shoulders when you lift the weights. Try to steady your shoulders and keep them parallel.'
+    
+    if upper_forearm_angle < 178:
+        correct = False
+        feedback += 'You are not lifting the weight all the way up. Extend your arms through the full range of motion. Lower the weight if necessary.'
+
+    if correct:
+        return (correct, 'Exercise performed correctly! Weight was lifted fully up, shoulders remained parallel, and no significant back movement was detected.')
+    else:
+        return (correct, feedback)
+
+    
+    
