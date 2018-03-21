@@ -20,6 +20,8 @@ def evaluate_pose(pose_seq, exercise):
         return _shoulder_press(pose_seq)
     elif exercise == 'front_raise':
         return _front_raise(pose_seq)
+    elif exercise == 'shoulder_shrug':
+        return _shoulder_shrug(pose_seq)
     else:
         return (False, "Exercise string not recognized.")
 
@@ -137,6 +139,52 @@ def _front_raise(pose_seq):
         return (correct, 'Exercise performed correctly! Weight was lifted fully up, and no significant back movement was detected.')
     else:
         return (correct, feedback)
+
+def _shoulder_shrug(pose_seq):
+    poses = pose_seq.poses
+
+    joints = [(pose.lshoulder, pose.rshoulder, pose.lelbow, pose.relbow, pose.lwrist, pose.rwrist) for pose in poses]
+
+    # filter out data points where a part does not exist
+    joints = [joint for joint in joints if all(part.exists for part in joint)]
+    joints = np.array(joints)
+    
+    # Shoulder position
+    shoulders = np.array([(joint[0].y, joint[1].y) for joint in joints])
+
+    # Straining back
+    shoulder_range = np.max(shoulders, axis=0) - np.min(shoulders, axis=0)
+    print("Range of motion for shoulders: %s" % np.average(shoulder_range))
+    
+    # Shoulder to elbow    
+    upper_arm_vecs = np.array([(joint[0].x - joint[2].x, joint[0].y - joint[2].y) for joint in joints])
+    # Elbow to wrist
+    forearm_vecs = np.array([(joint[2].x - joint[4].x, joint[2].y - joint[4].y) for joint in joints])
+    
+    # normalize vectors
+    upper_arm_vecs = upper_arm_vecs / np.expand_dims(np.linalg.norm(upper_arm_vecs, axis=1), axis=1)
+    forearm_vecs = forearm_vecs / np.expand_dims(np.linalg.norm(forearm_vecs, axis=1), axis=1)
+    
+    # Check if raised all the way up
+    upper_arm_forearm_angles = np.degrees(np.arccos(np.clip(np.sum(np.multiply(upper_arm_vecs, forearm_vecs), axis=1), -1.0, 1.0)))
+    upper_forearm_angle = np.max(upper_arm_forearm_angles)
+    print("Max upper arm and forearm angle: ", upper_forearm_angle)
+
+    correct = True
+    feedback = ''
+
+    if np.average(shoulder_range) < 0.1:
+        correct = False
+        feedback += 'Your shoulders do not go through enough motion. Squeeze and raise your shoulders more through the exercise.\n'
+
+    if upper_forearm_angle > 30.0:
+        correct = False
+        feedback += 'Your arms are bending when lifting. Keep your arms straight and still, and focus on moving only the shoulders.\n'
+
+    if correct:
+        return (correct, 'Exercise performed correctly! Shoulders went through full range of motion, and arms remained straight.')
+    else:
+        return (correct, feedback) 
 
 def _shoulder_press(pose_seq):
     poses = pose_seq.poses
