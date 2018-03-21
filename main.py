@@ -16,6 +16,7 @@ def main():
     parser.add_argument('--input_folder', type=str, default='videos', help='input folder for videos')
     parser.add_argument('--output_folder', type=str, default='poses', help='output folder for pose JSON')
     parser.add_argument('--video', type=str, help='input video filepath for evaluation')
+    parser.add_argument('--file', type=str, help='input npy file for evaluation')
     parser.add_argument('--exercise', type=str, default='bicep_curl', help='exercise type to evaluate')
 
     args = parser.parse_args()
@@ -28,7 +29,7 @@ def main():
         os.chdir('openpose')
 
         for video in videos:
-            print("processing video file:" + video)
+            print('processing video file:' + video)
             video_path = os.path.join('..', args.input_folder, video)
             output_path = os.path.join('..', args.output_folder, os.path.splitext(video)[0])
             openpose_path = os.path.join('bin', 'OpenPoseDemo.exe')
@@ -38,7 +39,7 @@ def main():
 
     elif args.mode == 'evaluate':
         if args.video:
-            print("processing video file...")
+            print('processing video file...')
             video = os.path.basename(args.video)
             
             output_path = os.path.join('..', os.path.splitext(video)[0])
@@ -59,8 +60,21 @@ def main():
             print('No video file specified.')
             return
     
+    elif args.mode == 'evaluate_npy':
+        if args.file:
+            pose_seq = load_ps(args.file)
+            (correct, feedback) = evaluate_pose(pose_seq, args.exercise)
+            if correct:
+                print('Exercise performed correctly:')
+            else:
+                print('Exercise could be improved:')
+            print(feedback)
+        else:
+            print('No npy file specified.')
+            return
+    
     else:
-        print('Unrecognized mode flag.')
+        print('Unrecognized mode option.')
         return
 
 
