@@ -42,7 +42,7 @@ def parse_sequence(json_folder, output_folder):
     for i in range(num_frames):
         with open(json_files[i]) as f:
             json_obj = json.load(f)
-            keypoints = np.array(json_obj['people'][0]['pose_keypoints'])
+            keypoints = np.array(json_obj['people'][0]['pose_keypoints_2d'])
             all_keypoints[i] = keypoints.reshape((18, 3))
     
     output_dir = os.path.join(output_folder, os.path.basename(json_folder))
