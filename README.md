@@ -28,6 +28,8 @@ Pose trainer has been tested with OpenPose 1.7.0.
 - Pose Trainer should be run from the root folder of the repository using main.py.
 - Pose Trainer requires Python with the necessary libraries installed.
 
+`main.py` is the primary script for running Pose Trainer. For options: `py main.py --help`
+
 Sample command: `py main.py --mode evaluate --video sample_bicep_curl.mp4`
 
 About speed:
